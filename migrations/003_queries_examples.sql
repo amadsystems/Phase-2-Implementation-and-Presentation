@@ -23,6 +23,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS check_game_date_trigger ON "Game";
+
 CREATE TRIGGER check_game_date_trigger
 BEFORE INSERT OR UPDATE ON "Game"
 FOR EACH ROW
@@ -31,7 +33,7 @@ EXECUTE FUNCTION check_game_date();
 
 -- VIEW:
 -- This just puts the main player/team/payment info in one place.
-CREATE VIEW "PlayerInfoView" AS
+CREATE OR REPLACE VIEW "PlayerInfoView" AS
 SELECT
   p."first_name" AS "player_first",
   p."last_name" AS "player_last",
@@ -88,22 +90,22 @@ FROM "GameReferee" gr
 JOIN "Referee" ref ON gr."referee_id" = ref."referee_id";
 
 
--- UPDATE 1: fix one player's eligibility
-UPDATE "Player"
-SET "eligibility_status" = 'Eligible'
-WHERE "player_id" = 5;
-
-
--- UPDATE 2: change one registration to active
+-- UPDATE 1: change one registration to active
 UPDATE "Registration"
 SET "status_id" = 1
-WHERE "registration_id" = 5;
+WHERE "registration_id" = 8;
+
+
+-- UPDATE 2: change one waitlisted registration to active
+UPDATE "Registration"
+SET "status_id" = 1
+WHERE "registration_id" = 6;
 
 
 -- UPDATE 3: mark one payment as completed
 UPDATE "Payment"
 SET "status_id" = 2
-WHERE "payment_id" = 4;
+WHERE "payment_id" = 5;
 
 
 -- UPDATE 4: update a game score
@@ -127,18 +129,18 @@ WHERE "referee_id" = 4;
 
 -- DELETE 1: add and delete a test referee assignment
 INSERT INTO "GameReferee" ("game_id", "referee_id")
-VALUES (1, 2);
+VALUES (1, 3);
 
 DELETE FROM "GameReferee"
-WHERE "game_id" = 1 AND "referee_id" = 2;
+WHERE "game_id" = 1 AND "referee_id" = 3;
 
 
 -- DELETE 2: add and delete a test coach assignment
-INSERT INTO "CoachTeam" ("coach_id", "team_id", "season_id")
-VALUES (1, 2, 1);
+INSERT INTO "CoachTeam" ("coach_id", "team_id")
+VALUES (4, 6);
 
 DELETE FROM "CoachTeam"
-WHERE "coach_id" = 1 AND "team_id" = 2 AND "season_id" = 1;
+WHERE "coach_id" = 4 AND "team_id" = 6;
 
 
 -- DELETE 3: add and delete a test payment
